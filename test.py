@@ -35,8 +35,11 @@ file_info = (
 						3. A : Dictionary
 						4. X : Sparse coding
 				3. Bug status:
-						1. h_sign doesn`t work
+						1. h_sign doesn`t work ---> fixed
 
+		v1.0.2.1114_alpha Update
+				1. Bug fixed
+				2. 
 
 		''')
 
@@ -44,9 +47,9 @@ file_info = (
 
 #--------------------------------variables----------------------------------------------
 # n p s --------> size parameters
-n = 10		# row size
-p = 5		# column size
-s = 5		# nonzero size
+n = 1000		# row size
+p = 500		# column size
+s = 100		# nonzero size
 step_length = 10
 #lmd = math.sqrt(2*n*math.log(p))  #lambda in LOSSA objective function
 lmd = 0.5
@@ -107,16 +110,14 @@ def h_sign(y):
 	for i in range(len(y)):
 		tmp = sign(y[i])
 		#new_y[i] = tmp * max(0, abs(y[i]) - step_length*lmd)   # NOTE: here is step_length * lmd, use max instead vec_max function
-		#new_y[i] = tmp * max(0, abs(y[i]) - lmd/L)
-		new_y[i] = tmp * max(0, abs(y[i]) - lmd/2)
-		'''
-		print('tmp is:' + str(tmp))
-		print('y[i] is:' + str(y[i]))
-		print('new_y[i] is:' + str(new_y[i]))
-		'''
+		new_y[i] = tmp * max(0, abs(y[i]) - lmd/L)
+		#new_y[i] = tmp * max(0, abs(y[i]) - lmd/2)
+		#print('tmp is:' + str(tmp))
+		#print('y[i] is:' + str(y[i]))
+		#print('new_y[i] is:' + str(new_y[i]))
 	
-	print('y is: \n' + str(y) )
-	print('new_y is: \n' + str(new_y) + '\n')
+	#print('y is: \n' + str(y) )
+	#print('new_y is: \n' + str(new_y) + '\n')
 
 	#print('threshold is: ' + str(lmd/L))
 	return new_y
@@ -166,7 +167,7 @@ def init_1():
 	time_2 = time.time()
 	#print('initialize time: ' + str(time_2 - time_1))
 
-	
+
 
 
 	'''
@@ -212,11 +213,12 @@ def m_func(B, x_n, b, s, x , lmd ,trig2):
 		m_value_1 = part_1 + part_2 + part_3
 		return m_value_1
 
+	#--------------------------------debug start------------------------------------
+	# using part 5
 	elif trig2 == '2':
 		m_value_2 = part_1 + part_2 + part_5 + part_4
 		return m_value_2
 
-	return m_value
 
 
 #objective function
@@ -342,11 +344,12 @@ def main_operation_ista():
 	time_1 = time.time()
 	trig = '2'
 	x_k = np.array([0.0]*p)
-	step_length = 10
+	step_size = 10
 	#L = math.sqrt(2*n*math.log(p))
+	outfile = open('testing.log','w')
 
 
-	for i in range(1):
+	for i in range(1000):
 	#while(1):
 		#print 'x_k',x_k
 		#y = gradient_descent(x_k, step_length, A, b)
@@ -369,9 +372,14 @@ def main_operation_ista():
 		
 		#y = h_sign(  x_k - (np.dot(A.T , (np.dot(A,x_copy)-b)))/L   )
 
-		print('ista y_tmp is: \n' + str(y_tmp))
-
-		print('ista y is: \n' + str(y))
+		log_tmp_1 = '\n##### No. ' + str(i) + ' ########\n x_k is: \n' + str(x_k)
+		#print('\n##### No. ' + str(i) + ' ########\n x_k is: \n' + str(x_k))
+		outfile.write(str(log_tmp_1)+'\n')
+		
+		
+		
+		#print('ista y_tmp is: \n' + str(y_tmp))
+		#print('ista y is: \n' + str(y))
 
 
 
@@ -383,7 +391,12 @@ def main_operation_ista():
 		#---------------------------debug start----------------------------
 		#f_value = f_func_LASSO(A,x_k_plus_1,b , lmd)
 		f_value = f_func(A,x_k_plus_1,b , trig)
-		print ('f_value x_k_plus_1 is: \n' + str(f_value))
+		
+		log_tmp_2 = 'f_value x_k_plus_1 is: ' + str(f_value)
+		print ('f_value x_k_plus_1 is: ' + str(f_value))
+		outfile.write(str(log_tmp_2)+'\n')
+
+
 
 		#f_value = f_func(A,x_k,b , trig)
 		#print ('f_value x_k is: ' + str(f_value))
@@ -391,16 +404,18 @@ def main_operation_ista():
 		
 		#print ('f_value '+ str(f_value))
 
-		#m_value = m_func(A,x_k, b, L, x_k_plus_1 , lmd , '2')
-		#print ('m_value '+ str(m_value))
+		m_value = m_func(A,x_k, b, step_size, x_k_plus_1 , lmd , '2')
 
+		#log_tmp_3 = 'm_value x_k_plus_1 is: '+ str(m_value)
+		#print ('m_value x_k_plus_1 is: '+ str(m_value))
+		#outfile.write(str(log_tmp_3)+'\n')
 
 		#if f_value <= m_value:
 		#	break
 
 
 
-		#L = L * 0.5
+		#step_size = step_size * 0.5
 
 
 
@@ -412,12 +427,10 @@ def main_operation_ista():
 
 
 		#print('x_k_plus_1 is:' + str(x_k_plus_1))
-		print('##### No. ' + str(i) + ' ########\n x_k is:' + str(x_k))
 
 
-		if f_func(A,x_k,b, trig) >= f_func(A,x_k_plus_1,b , trig):
-			pass
-			#break
+		if f_func(A,x_k,b, trig) == f_func(A,x_k_plus_1,b , trig):
+			break
 
 		elif f_value == 'inf':
 			break
@@ -425,8 +438,11 @@ def main_operation_ista():
 		
 		x_k = x_k_plus_1
 
+
+	
 	time_2 = time.time()
-	print( 'Problem: LASSO\nMatrix size: ' + str(n) + ' x ' + str(p) + '\n' + 'Method: ISTA\nRunning time: ' + str(time_2 - time_1) + '\n' )
+	print('\n##### No. ' + str(i) + ' ########\n x_k is: \n' + str(x_k))
+	print( 'Problem: LASSO\nStep size: ' + str(step_size) + '\nMatrix size: ' + str(n) + ' x ' + str(p) + '\n' + 'Method: ISTA\nRunning time: ' + str(time_2 - time_1) + '\n' )
 	#print( 'Final x_k is: ' + str(x_k))
 	#print( 'Final x_k_plus_1 is: ' + str(x_k_plus_1) + '\n')
 	#print('A2 is ' + str(A))
